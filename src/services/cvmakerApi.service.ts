@@ -43,6 +43,7 @@ export type UpdateProfileBody = {
     years_experience?: number | null;
   }>;
   documents: Array<{
+    id?: number;
     title: string;
     category: string;
     description?: string | null;
@@ -51,6 +52,7 @@ export type UpdateProfileBody = {
     file_content_base64?: string | null;
     file_mime_type?: string | null;
     issue_date?: string | null;
+    remove_file?: boolean;
   }>;
 };
 
