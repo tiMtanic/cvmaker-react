@@ -1,75 +1,119 @@
-# React + TypeScript + Vite
+# CVMaker
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+CV Maker is a single-page application for displaying and managing a personal CV, including profile information, work experience, education, skills, documents, and professional links.
 
-Currently, two official plugins are available:
+The application uses access-code-based authentication with administrator functionality for editing the CV and managing access codes. Access attempts are logged with location information, while the application is built with a responsive frontend and a PostgreSQL database.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Additional Information
 
-## React Compiler
+### Data Model
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```mermaid
+erDiagram
+    profile_info ||--o{ work_experience : "contains"
+    profile_info ||--o{ education : "contains"
+    profile_info ||--o{ skill : "contains"
+    profile_info ||--o{ document : "contains"
 
-## Expanding the ESLint configuration
+    profile_info {
+      int id PK
+      string full_name
+      string professional_title
+      string email
+      string phone
+      string country
+      string profile_summary
+      string linkedin_url
+      string xing_url
+      string github_url
+      binary photo
+      string photo_mime_type
+    }
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+    work_experience {
+      int id PK
+      int profile_info_id FK
+      string company_name
+      string job_title
+      string location
+      date start_date
+      date end_date
+      boolean is_current
+      string description
+    }
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+    education {
+      int id PK
+      int profile_info_id FK
+      string institution_name
+      string qualification
+      string field_of_study
+      string location
+      date start_date
+      date end_date
+      string description
+    }
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+    skill {
+      int id PK
+      int profile_info_id FK
+      string name
+      string category
+      string level
+      number years_experience
+    }
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+    document {
+      int id PK
+      int profile_info_id FK
+      string title
+      string category
+      string description
+      string external_url
+      string file_name
+      binary file_content
+      string file_mime_type
+      date issue_date
+    }
 
+    access_code ||--o{ access_log : "creates"
+
+    access_code {
+      string code PK
+      string company
+      boolean is_admin_code
+    }
+
+    access_log {
+      string access_code_code PK, FK
+      datetime access_time PK
+      string country
+      string city
+    }
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+### Tools Used
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+[Visual Studio Code](https://code.visualstudio.com/)
+[pgAdmin 4](https://www.pgadmin.org/)
+[Supabase](https://supabase.com/)
+[Vercel](https://vercel.com/)
+[ChatGPT 5.6-Sol](https://chatgpt.com/)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Resources Used
 
-```
+[MDN Web Docs](https://developer.mozilla.org/en-US/)
+[StackOverflow](https://stackoverflow.com/)
+[Material UI](https://mui.com/material-ui/)
+[MUI X Date Pickers](https://mui.com/x/react-date-pickers/)
+[Roboto Font](https://fonts.google.com/specimen/Roboto)
+[Vite](https://vite.dev/)
+[React](https://react.dev/)
+[React Router](https://reactrouter.com/)
+[Axios](https://axios-http.com/)
+[Day.js](https://day.js.org/)
+[Express](https://expressjs.com/)
+[Prisma](https://www.prisma.io/)
+[PostgreSQL](https://www.postgresql.org/)
+[JSON Web Tokens](https://jwt.io/)
+[IPWhois](https://ipwhois.io/)
