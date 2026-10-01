@@ -1,11 +1,20 @@
+import { useContext } from "react";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import { Box, Button, IconButton, Tooltip } from "@mui/material";
 import { useColorScheme } from "@mui/material/styles";
 import { NavLink } from "react-router";
+import { AuthContext } from "../context/auth.context";
 
 function Navigation() {
   const { mode, systemMode, setMode } = useColorScheme();
+  const authContext = useContext(AuthContext);
+
+  if (!authContext) {
+    throw new Error("Navigation must be used inside AuthWrapper");
+  }
+
+  const { isAdmin } = authContext;
 
   const currentMode = mode === "system" ? systemMode : mode;
 
@@ -14,6 +23,13 @@ function Navigation() {
   function handleThemeToggle() {
     setMode(isDarkMode ? "light" : "dark");
   }
+
+  const navButtonSx = {
+    "&.active": {
+      fontWeight: "bold",
+      color: "primary.main",
+    },
+  } as const;
 
   return (
     <Box
@@ -26,31 +42,31 @@ function Navigation() {
         p: 2,
       }}
     >
-      <Button
-        component={NavLink}
-        to="/"
-        color="inherit"
-        sx={{
-          "&.active": {
-            fontWeight: "bold",
-          },
-        }}
-      >
-        Profile
-      </Button>
+      {isAdmin && (
+        <>
+          <Button component={NavLink} to="/" color="inherit" sx={navButtonSx}>
+            Profile
+          </Button>
 
-      <Button
-        component={NavLink}
-        to="/edit"
-        color="inherit"
-        sx={{
-          "&.active": {
-            fontWeight: "bold",
-          },
-        }}
-      >
-        Edit Profile
-      </Button>
+          <Button
+            component={NavLink}
+            to="/edit"
+            color="inherit"
+            sx={navButtonSx}
+          >
+            Edit Profile
+          </Button>
+
+          <Button
+            component={NavLink}
+            to="/access-log"
+            color="inherit"
+            sx={navButtonSx}
+          >
+            Access Log
+          </Button>
+        </>
+      )}
 
       <Tooltip title={isDarkMode ? "Light mode" : "Dark mode"}>
         <IconButton

@@ -6,6 +6,7 @@ import ProfileSidebar from "../components/profile/ProfileSidebar";
 import ProfileSummarySection from "../components/profile/ProfileSummarySection";
 import WorkExperienceSection from "../components/profile/WorkExperienceSection";
 import { useProfile } from "../context/profile.context";
+import { Navigate } from "react-router";
 
 function ProfilePage() {
   const {
@@ -42,11 +43,7 @@ function ProfilePage() {
   }
 
   if (!profile) {
-    return (
-      <Container maxWidth="md" sx={{ py: 6 }}>
-        <Alert severity="info">No profile found.</Alert>
-      </Container>
-    );
+    return <Navigate to="/edit" />;
   }
 
   return (

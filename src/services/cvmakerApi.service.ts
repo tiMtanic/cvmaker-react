@@ -56,6 +56,20 @@ export type UpdateProfileBody = {
   }>;
 };
 
+export type AuthPayload = {
+  code: string;
+  is_admin_code: boolean;
+};
+
+export type AuthResponse = {
+  authToken: string;
+  payload: AuthPayload;
+};
+
+export type VerifyResponse = {
+  payload: AuthPayload;
+};
+
 export async function getProfileAsync() {
   const response = await cvmakerApiService.get("/profile");
   return response.data;
@@ -95,6 +109,28 @@ export async function getDocumentFileAsync(documentId: number) {
   );
 
   return response.data;
+}
+
+export async function setupAsync(code: string): Promise<AuthResponse> {
+  return (await cvmakerApiService.post("/auth/setup", { code })).data;
+}
+
+export async function signInAsync(code: string): Promise<AuthResponse> {
+  return (await cvmakerApiService.post("/auth/signin", { code })).data;
+}
+
+export async function verifyAsync(): Promise<VerifyResponse> {
+  const authToken = localStorage.getItem("authToken");
+
+  return (
+    await cvmakerApiService.get("/auth/verify", {
+      headers: authToken
+        ? {
+            Authorization: `Bearer ${authToken}`,
+          }
+        : undefined,
+    })
+  ).data;
 }
 
 export default cvmakerApiService;
