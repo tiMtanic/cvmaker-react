@@ -84,7 +84,8 @@ export function ProfileProvider({ children }: ProfileProviderProps) {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
+  const [hasLoadedProfile, setHasLoadedProfile] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const clearProfile = useCallback(() => {
@@ -94,10 +95,11 @@ export function ProfileProvider({ children }: ProfileProviderProps) {
     setSkills([]);
     setDocuments([]);
     setError(null);
+    setHasLoadedProfile(false);
   }, []);
 
   const refreshProfile = useCallback(async () => {
-    setIsLoading(true);
+    setIsFetching(true);
     setError(null);
 
     try {
@@ -135,14 +137,15 @@ export function ProfileProvider({ children }: ProfileProviderProps) {
       console.error(error);
       setError("Could not load CV.");
     } finally {
-      setIsLoading(false);
+      setIsFetching(false);
+      setHasLoadedProfile(true);
     }
   }, []);
 
   useEffect(() => {
     if (!isLoggedIn) {
       clearProfile();
-      setIsLoading(false);
+      setIsFetching(false);
       return;
     }
 
@@ -160,6 +163,10 @@ export function ProfileProvider({ children }: ProfileProviderProps) {
       document.title = "CV";
     }
   }, [profile?.full_name]);
+
+  const isLoading =
+    isLoggedIn &&
+    (!hasLoadedProfile || isFetching);
 
   return (
     <ProfileContext.Provider
