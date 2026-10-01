@@ -1,8 +1,7 @@
-import { useContext, useState, type FormEvent } from "react";
+import { useContext, useState, type SyntheticEvent } from "react";
 import { useNavigate } from "react-router";
 import axios from "axios";
 import { MuiOtpInput } from "mui-one-time-password-input";
-
 import {
   Alert,
   Box,
@@ -14,7 +13,6 @@ import {
 } from "@mui/material";
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
 import { alpha } from "@mui/material/styles";
-
 import { AuthContext } from "../context/auth.context";
 import { setupAsync } from "../services/cvmakerApi.service";
 
@@ -45,7 +43,7 @@ function SetupPage() {
     }
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const trimmedCode = code.trim();
@@ -213,15 +211,17 @@ function SetupPage() {
               onChange={handleCodeChange}
               length={5}
               autoFocus
-              
               TextFieldsProps={(index) => ({
-                type: "password",
+                type: "text",
                 disabled: isSubmitting,
+
                 slotProps: {
                   htmlInput: {
                     "aria-label": `Access code character ${index + 1}`,
+                    autoComplete: "off",
                   },
                 },
+
                 sx: {
                   "& .MuiInputBase-root": {
                     borderRadius: 2,
@@ -238,6 +238,8 @@ function SetupPage() {
                       xs: 1.25,
                       sm: 1.5,
                     },
+
+                    WebkitTextSecurity: "disc",
                   },
                 },
               })}

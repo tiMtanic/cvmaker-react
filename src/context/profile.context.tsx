@@ -7,6 +7,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
+
+import { AuthContext } from "./auth.context";
+
 import {
   getDocumentsAsync,
   getEducationAsync,
@@ -58,20 +61,40 @@ type ProfileContextType = {
   refreshProfile: () => Promise<void>;
 };
 
-const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
+const ProfileContext = createContext<ProfileContextType | undefined>(
+  undefined,
+);
 
 type ProfileProviderProps = {
   children: ReactNode;
 };
 
 export function ProfileProvider({ children }: ProfileProviderProps) {
+  const authContext = useContext(AuthContext);
+
+  if (!authContext) {
+    throw new Error("ProfileProvider must be used inside AuthWrapper");
+  }
+
+  const { isLoggedIn } = authContext;
+
   const [profile, setProfile] = useState<Profile | null>(null);
   const [workExperience, setWorkExperience] = useState<WorkExperience[]>([]);
   const [education, setEducation] = useState<Education[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const clearProfile = useCallback(() => {
+    setProfile(null);
+    setWorkExperience([]);
+    setEducation([]);
+    setSkills([]);
+    setDocuments([]);
+    setError(null);
+  }, []);
 
   const refreshProfile = useCallback(async () => {
     setIsLoading(true);
@@ -79,7 +102,10 @@ export function ProfileProvider({ children }: ProfileProviderProps) {
 
     try {
       const profileRequest = getProfileAsync().catch((error) => {
-        if (axios.isAxiosError(error) && error.response?.status === 404) {
+        if (
+          axios.isAxiosError(error) &&
+          error.response?.status === 404
+        ) {
           return null;
         }
 
@@ -114,8 +140,18 @@ export function ProfileProvider({ children }: ProfileProviderProps) {
   }, []);
 
   useEffect(() => {
-    refreshProfile();
-  }, [refreshProfile]);
+    if (!isLoggedIn) {
+      clearProfile();
+      setIsLoading(false);
+      return;
+    }
+
+    void refreshProfile();
+  }, [
+    isLoggedIn,
+    clearProfile,
+    refreshProfile,
+  ]);
 
   useEffect(() => {
     if (profile?.full_name) {
@@ -147,7 +183,9 @@ export function useProfile() {
   const context = useContext(ProfileContext);
 
   if (!context) {
-    throw new Error("useProfile must be used inside ProfileProvider");
+    throw new Error(
+      "useProfile must be used inside ProfileProvider",
+    );
   }
 
   return context;

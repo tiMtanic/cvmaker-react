@@ -4,6 +4,16 @@ const cvmakerApiService = axios.create({
   baseURL: `${import.meta.env.VITE_SERVER_URL}/api`,
 });
 
+cvmakerApiService.interceptors.request.use((config) => {
+  const authToken = localStorage.getItem("authToken");
+
+  if (authToken) {
+    config.headers.Authorization = `Bearer ${authToken}`;
+  }
+
+  return config;
+});
+
 export type UpdateProfileBody = {
   profile: {
     full_name: string;
@@ -70,6 +80,19 @@ export type VerifyResponse = {
   payload: AuthPayload;
 };
 
+export type AccessCode = {
+  code: string;
+  company: string | null;
+  is_admin_code: boolean;
+};
+
+export type AccessLog = {
+  access_code_code: string;
+  access_time: string;
+  country: string | null;
+  city: string | null;
+};
+
 export async function getProfileAsync() {
   const response = await cvmakerApiService.get("/profile");
   return response.data;
@@ -120,17 +143,31 @@ export async function signInAsync(code: string): Promise<AuthResponse> {
 }
 
 export async function verifyAsync(): Promise<VerifyResponse> {
-  const authToken = localStorage.getItem("authToken");
+  return (await cvmakerApiService.get("/auth/verify")).data;
+}
 
+export async function getAccessCodesAsync(): Promise<AccessCode[]> {
+  return (await cvmakerApiService.get("/access-codes")).data;
+}
+
+export async function createAccessCodeAsync(
+  code: string,
+  company?: string | null,
+): Promise<AccessCode> {
   return (
-    await cvmakerApiService.get("/auth/verify", {
-      headers: authToken
-        ? {
-            Authorization: `Bearer ${authToken}`,
-          }
-        : undefined,
+    await cvmakerApiService.post("/access-codes", {
+      code,
+      company: company?.trim() || null,
     })
   ).data;
+}
+
+export async function deleteAccessCodeAsync(code: string): Promise<void> {
+  await cvmakerApiService.delete(`/access-codes/${encodeURIComponent(code)}`);
+}
+
+export async function getAccessLogsAsync(): Promise<AccessLog[]> {
+  return (await cvmakerApiService.get("/access-logs")).data;
 }
 
 export default cvmakerApiService;

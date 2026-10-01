@@ -1,5 +1,5 @@
-import { useEffect, useState, type ComponentProps } from "react";
-import { useNavigate } from "react-router";
+import { useContext, useEffect, useState, type ComponentProps } from "react";
+import { Navigate, useNavigate } from "react-router";
 import {
   Alert,
   Box,
@@ -28,6 +28,7 @@ import {
   updateProfileAsync,
   type UpdateProfileBody,
 } from "../services/cvmakerApi.service";
+import { AuthContext } from "../context/auth.context";
 
 type ProfileFormData = UpdateProfileBody["profile"];
 
@@ -213,6 +214,16 @@ function EditProfilePage() {
       setIsSaving(false);
     }
   };
+
+  const authContext = useContext(AuthContext);
+
+  if (!authContext) {
+    throw new Error("EditProfilePage must be used inside AuthWrapper");
+  }
+
+  if (!authContext.isAdmin) {
+    return <Navigate to="/" />;
+  }
 
   if (isLoading || isInitializing) {
     return (
