@@ -3,11 +3,12 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
 import { Box, CircularProgress, Typography } from "@mui/material";
-import { useNavigate } from "react-router";
+import { Navigate, useLocation, useNavigate } from "react-router";
 import axios from "axios";
 import { signInAsync, verifyAsync } from "../services/cvmakerApi.service";
 
@@ -25,6 +26,8 @@ type AuthContextValue = {
   logout: () => void;
 };
 
+type RedirectPath = "/login" | "/setup" | "/" | null;
+
 export const AuthContext = createContext<AuthContextValue | undefined>(
   undefined,
 );
@@ -35,11 +38,14 @@ type AuthWrapperProps = {
 
 export function AuthWrapper({ children }: AuthWrapperProps) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const hasInitialized = useRef(false);
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [code, setCode] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isVerifyingUser, setIsVerifyingUser] = useState(true);
+  const [redirectTo, setRedirectTo] = useState<RedirectPath>(null);
 
   const clearUserVariables = useCallback(() => {
     setIsLoggedIn(false);
@@ -54,6 +60,8 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
       setIsLoggedIn(true);
       setCode(payload.code);
       setIsAdmin(payload.is_admin_code);
+
+      setRedirectTo(null);
     },
     [],
   );
@@ -65,37 +73,34 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
 
     const search = params.toString();
 
-    navigate(
-      {
-        pathname: window.location.pathname,
-        search: search ? `?${search}` : "",
-        hash: window.location.hash,
-      },
-      {
-        replace: true,
-      },
-    );
-  }, [navigate]);
+    const newUrl = `${window.location.pathname}${
+      search ? `?${search}` : ""
+    }${window.location.hash}`;
+
+    window.history.replaceState(window.history.state, "", newUrl);
+  }, []);
 
   const verifyUser = useCallback(async () => {
-    try {
-      const urlParams = new URLSearchParams(window.location.search);
+    setIsVerifyingUser(true);
 
-      const queryCode = urlParams.get("code")?.trim();
+    try {
+      const params = new URLSearchParams(window.location.search);
+
+      const queryCode = params.get("code")?.trim();
 
       /*
        * Automatic login:
        * /?code=12345
        */
       if (queryCode) {
+        removeCodeFromUrl();
+
         if (queryCode.length !== 5) {
-          removeCodeFromUrl();
-          clearUserVariables();
           localStorage.removeItem("authToken");
 
-          navigate("/login", {
-            replace: true,
-          });
+          clearUserVariables();
+
+          setRedirectTo("/login");
 
           return;
         }
@@ -105,34 +110,24 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
 
           setUserVariables(result.authToken, result.payload);
 
-          removeCodeFromUrl();
+          setRedirectTo("/");
 
           return;
         } catch (error) {
-          removeCodeFromUrl();
+          localStorage.removeItem("authToken");
+
+          clearUserVariables();
 
           if (
             axios.isAxiosError(error) &&
             error.response?.data?.errorCode === "SETUP_REQUIRED"
           ) {
-            clearUserVariables();
-
-            localStorage.removeItem("authToken");
-
-            navigate("/setup", {
-              replace: true,
-            });
+            setRedirectTo("/setup");
 
             return;
           }
 
-          clearUserVariables();
-
-          localStorage.removeItem("authToken");
-
-          navigate("/login", {
-            replace: true,
-          });
+          setRedirectTo("/login");
 
           return;
         }
@@ -143,27 +138,34 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
       setIsLoggedIn(true);
       setCode(result.payload.code);
       setIsAdmin(result.payload.is_admin_code);
+
+      if (
+        window.location.pathname === "/login" ||
+        window.location.pathname === "/setup"
+      ) {
+        setRedirectTo("/");
+      }
     } catch (error) {
-      clearUserVariables();
       localStorage.removeItem("authToken");
+
+      clearUserVariables();
 
       if (
         axios.isAxiosError(error) &&
         error.response?.data?.errorCode === "SETUP_REQUIRED"
       ) {
-        navigate("/setup", {
-          replace: true,
-        });
+        setRedirectTo("/setup");
         return;
       }
 
-      navigate("/login", {
-        replace: true,
-      });
+      /*
+       * A normal 401 ends up here.
+       */
+      setRedirectTo("/login");
     } finally {
       setIsVerifyingUser(false);
     }
-  }, [clearUserVariables, navigate, removeCodeFromUrl, setUserVariables]);
+  }, [clearUserVariables, removeCodeFromUrl, setUserVariables]);
 
   const logout = useCallback(() => {
     localStorage.removeItem("authToken");
@@ -176,8 +178,20 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
   }, [clearUserVariables, navigate]);
 
   useEffect(() => {
+    if (hasInitialized.current) {
+      return;
+    }
+
+    hasInitialized.current = true;
+
     void verifyUser();
   }, [verifyUser]);
+
+  useEffect(() => {
+    if (redirectTo && location.pathname === redirectTo) {
+      setRedirectTo(null);
+    }
+  }, [location.pathname, redirectTo]);
 
   const passedContext = useMemo<AuthContextValue>(
     () => ({
@@ -211,6 +225,10 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
         </Typography>
       </Box>
     );
+  }
+
+  if (redirectTo && location.pathname !== redirectTo) {
+    return <Navigate to={redirectTo} replace />;
   }
 
   return (

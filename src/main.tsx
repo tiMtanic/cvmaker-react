@@ -1,4 +1,3 @@
-import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import { BrowserRouter } from "react-router";
@@ -16,7 +15,6 @@ import "dayjs/locale/de";
 import { AuthWrapper } from "./context/auth.context.tsx";
 
 createRoot(document.getElementById("root")!).render(
-  // <StrictMode>
   <ThemeProvider theme={theme} defaultMode="system" disableTransitionOnChange>
     <CssBaseline />
     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="de">
@@ -29,5 +27,4 @@ createRoot(document.getElementById("root")!).render(
       </BrowserRouter>
     </LocalizationProvider>
   </ThemeProvider>,
-  // </StrictMode>,
 );
