@@ -9,7 +9,7 @@ import {
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { useNavigate } from "react-router";
 import axios from "axios";
-import { verifyAsync } from "../services/cvmakerApi.service";
+import { signInAsync, verifyAsync } from "../services/cvmakerApi.service";
 
 export type AuthPayload = {
   code: string;
@@ -58,8 +58,86 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
     [],
   );
 
+  const removeCodeFromUrl = useCallback(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    params.delete("code");
+
+    const search = params.toString();
+
+    navigate(
+      {
+        pathname: window.location.pathname,
+        search: search ? `?${search}` : "",
+        hash: window.location.hash,
+      },
+      {
+        replace: true,
+      },
+    );
+  }, [navigate]);
+
   const verifyUser = useCallback(async () => {
     try {
+      const urlParams = new URLSearchParams(window.location.search);
+
+      const queryCode = urlParams.get("code")?.trim();
+
+      /*
+       * Automatic login:
+       * /?code=12345
+       */
+      if (queryCode) {
+        if (queryCode.length !== 5) {
+          removeCodeFromUrl();
+          clearUserVariables();
+          localStorage.removeItem("authToken");
+
+          navigate("/login", {
+            replace: true,
+          });
+
+          return;
+        }
+
+        try {
+          const result = await signInAsync(queryCode);
+
+          setUserVariables(result.authToken, result.payload);
+
+          removeCodeFromUrl();
+
+          return;
+        } catch (error) {
+          removeCodeFromUrl();
+
+          if (
+            axios.isAxiosError(error) &&
+            error.response?.data?.errorCode === "SETUP_REQUIRED"
+          ) {
+            clearUserVariables();
+
+            localStorage.removeItem("authToken");
+
+            navigate("/setup", {
+              replace: true,
+            });
+
+            return;
+          }
+
+          clearUserVariables();
+
+          localStorage.removeItem("authToken");
+
+          navigate("/login", {
+            replace: true,
+          });
+
+          return;
+        }
+      }
+
       const result = await verifyAsync();
 
       setIsLoggedIn(true);
@@ -85,7 +163,7 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
     } finally {
       setIsVerifyingUser(false);
     }
-  }, [clearUserVariables, navigate]);
+  }, [clearUserVariables, navigate, removeCodeFromUrl, setUserVariables]);
 
   const logout = useCallback(() => {
     localStorage.removeItem("authToken");
