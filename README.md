@@ -94,26 +94,26 @@ erDiagram
 
 ### Tools Used
 
-[Visual Studio Code](https://code.visualstudio.com/)
-[pgAdmin 4](https://www.pgadmin.org/)
-[Supabase](https://supabase.com/)
-[Vercel](https://vercel.com/)
+[Visual Studio Code](https://code.visualstudio.com/)\
+[pgAdmin 4](https://www.pgadmin.org/)\
+[Supabase](https://supabase.com/)\
+[Vercel](https://vercel.com/)\
 [ChatGPT 5.6-Sol](https://chatgpt.com/)
 
 ### Resources Used
 
-[MDN Web Docs](https://developer.mozilla.org/en-US/)
-[StackOverflow](https://stackoverflow.com/)
-[Material UI](https://mui.com/material-ui/)
-[MUI X Date Pickers](https://mui.com/x/react-date-pickers/)
-[Roboto Font](https://fonts.google.com/specimen/Roboto)
-[Vite](https://vite.dev/)
-[React](https://react.dev/)
-[React Router](https://reactrouter.com/)
-[Axios](https://axios-http.com/)
-[Day.js](https://day.js.org/)
-[Express](https://expressjs.com/)
-[Prisma](https://www.prisma.io/)
-[PostgreSQL](https://www.postgresql.org/)
-[JSON Web Tokens](https://jwt.io/)
+[MDN Web Docs](https://developer.mozilla.org/en-US/)\
+[StackOverflow](https://stackoverflow.com/)\
+[Material UI](https://mui.com/material-ui/)\
+[MUI X Date Pickers](https://mui.com/x/react-date-pickers/)\
+[Roboto Font](https://fonts.google.com/specimen/Roboto)\
+[Vite](https://vite.dev/)\
+[React](https://react.dev/)\
+[React Router](https://reactrouter.com/)\
+[Axios](https://axios-http.com/)\
+[Day.js](https://day.js.org/)\
+[Express](https://expressjs.com/)\
+[Prisma](https://www.prisma.io/)\
+[PostgreSQL](https://www.postgresql.org/)\
+[JSON Web Tokens](https://jwt.io/)\
 [IPWhois](https://ipwhois.io/)
